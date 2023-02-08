@@ -1,0 +1,7 @@
+{
+  "accessToken": "string",
+  "user": {
+    "uid": "string",
+    "username": "string"
+  }
+}

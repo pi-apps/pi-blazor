@@ -1,0 +1,24 @@
+﻿{
+  "identifier": "string",
+  "user_uid": "string",
+  "amount": 3.14,
+  "memo": "string",
+  "metadata": {
+    "orderId": 123,
+    "chalangesIds": [ 1, 2, 3 ]
+  },
+  "to_address": "string",
+  "created_at": "string",
+  "status": {
+    "developer_approved": true,
+    "transaction_verified": true,
+    "developer_completed": true,
+    "cancelled": true,
+    "user_cancelled": true
+  },
+  "transaction": {
+    "txid": "string",
+    "verified": true,
+    "_link": "string"
+  }
+}

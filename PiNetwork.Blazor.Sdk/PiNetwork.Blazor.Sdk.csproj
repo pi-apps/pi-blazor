@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <Version>1.0.0</Version>
+    <Platforms>AnyCPU;x86</Platforms>
+    <Description>Pi Network SDK</Description>
+    <Copyright>Arturas Valincius</Copyright>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <RootNamespace>PiNetwork.Blazor.Sdk</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="bundleconfig.json" />
+    <Content Remove="Dto\PaymentDto.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bundleconfig.json" />
+    <None Include="Dto\Payment\PaymentDto.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="$(MycrosoftExtensions)" />
+    <PackageReference Include="Microsoft.Extensions.Localization" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MycrosoftExtensions)" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="$(ExtensionsHttpPolly)" />
+    <PackageReference Include="Blazored.SessionStorage" Version="$(BlazoredSessionStorage)" />
+  </ItemGroup>
+  
+
+
+</Project>

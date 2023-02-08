@@ -1,0 +1,24 @@
+is_global = true
+build_property.TargetFramework = net6.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = PiNetwork.Blazor.Sdk
+build_property.RootNamespace = PiNetwork.Blazor.Sdk
+build_property.ProjectDir = C:\Users\ArturasValincius\Desktop\Challenge\Clients\PiNetwork.Blazor.Sdk\
+build_property.RazorLangVersion = 6.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\ArturasValincius\Desktop\Challenge\Clients\PiNetwork.Blazor.Sdk
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/ArturasValincius/Desktop/Challenge/Clients/PiNetwork.Blazor.Sdk/Pages/PiNetworkMain.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGlOZXR3b3JrTWFpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ArturasValincius/Desktop/Challenge/Clients/PiNetwork.Blazor.Sdk/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
