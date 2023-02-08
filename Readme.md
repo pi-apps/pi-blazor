@@ -55,7 +55,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerF
 Settings is done!
 
 Now you will need to create some class to deal with PiNetwork callbacks. 
-This class mus be extended from abstract class PiNetworkClientBlazor.
+This class must be extended from abstract class PiNetworkClientBlazor.
 You will need to override methods to your needs.
 In example bellow your bussiness logic handler is IOrderServices.
 
