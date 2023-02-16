@@ -4,9 +4,9 @@ See LICENSE.md file for more details
 ## INSTALATION
 
 Clone project, add to your solution.
-This setup is for server side Blazor, but for WASM blazor (client side) would need with minimal changes only.
+This setup is for server side Blazor, but for WASM blazor (client side) would be good as well.
 
-Add lines to appsettings.json
+Add lines to your Blazor project appsettings.json
 
     "PiNetwork": {
         "ApiKey": "YourApiKey",
@@ -31,14 +31,15 @@ Modify your Blazor project Startup.cs file:
             options.BaseUrl = this.Configuration["PiNetwork:BaseUrl"];
     });
     
-    //Add this two lines
+    //Add this two lines PiNetwork.Blazor.Sdk uses SessionStorage and MemoryCache
     services.AddBlazoredSessionStorage();
     services.AddMemoryCache();
 
     //...your rest code
 
     }
-
+    
+    // for Pi network browser to work fine, these lines should be added
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
     {
 
@@ -117,19 +118,19 @@ Put this new class to you Blazor project. Lets call this new class ServicesPiNet
         }
     }
 
-## SEE REAL WORLD PRODUCTION EXAMPLE
+## SEE REAL WORLD PRODUCTION EXAMPLE AND USE FOR YOUR APP
 See ServicesPiNetworkFacadeExample.md
 
 ## RETRIES
 By default if something fails PiNetworkClientBlazor will try to retry (if it is reasonable to do so and could solve problem) up to 10 times with 1000 milliseconds intervals.
-You can override this values in ServicesPiNetworkFacade:
+You can override these values in ServicesPiNetworkFacade:
 
     public virtual int Retries { get; set; } = 10;
 
     public virtual int RetryDelay { get; set; } = 1000;
 
 ## USE ENUMS FOR MESSAGES IN PiNetworkConstantsEnums.cs
-See PiNetwork.Blazor.Sdk.ConstantsEnums for messages to pass to front side
+See PiNetwork.Blazor.Sdk.ConstantsEnums for messages to pass to front side. Messages stored in SessionStorage.
 
     AuthenticationError = 0,
     PaymentError = 1,
@@ -143,6 +144,12 @@ See PiNetwork.Blazor.Sdk.ConstantsEnums for messages to pass to front side
 
 If you don't need to redirect use constant "PiNetworkDoNotRedirect" this is used in AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri).
 See ServicesPiNetworkFacadeExample.md.
+
+## OPEN SHARE DIALOG
+Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
+    
+    //OpenShareDialog(string title, string message)
+    await this.piClient.OpenShareDialog("Share", "https://www.your-pi-network-project.com"))
 
 ## CHECK IF BROWSER IS PI NETWORK BROWSER
 PiNetworkClientBlazor.IsPiNetworkBrowser() this method is not from PI SDK, but still very practical.
@@ -163,7 +170,7 @@ Thirst authenticate with ConstantsEnums.PiNetworkDoNotRedirect option. Authentic
 
     await this.piClient.Authenticate(ConstantsEnums.PiNetworkDoNotRedirect, 0); // 0 - first attempt
 
-Second make payment
+Now make payment
 
     //memo - order discription. Don't exceed 25 characters.
     //public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
