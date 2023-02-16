@@ -4,7 +4,7 @@ See LICENSE.md file for more details
 ## INSTALATION
 
 Clone project, add to your solution.
-This setup is for server side Blazor, but for WASM blazor (client side) would be with minimal changes.
+This setup is for server side Blazor, but for WASM blazor (client side) would need with minimal changes only.
 
 Add lines to appsettings.json
 
@@ -14,32 +14,36 @@ Add lines to appsettings.json
     }
 
 
-Add reference to your Server side blazor project to PiNetwork.Blazor.Sdk
+Add reference to your Blazor project to this PiNetwork.Blazor.Sdk
 
-Modify Startup.cs file:
+Modify your Blazor project Startup.cs file:
 
     public void ConfigureServices(IServiceCollection services)
     {
-    ...your rest code
+    //...your rest code
     services.AddScoped<IPiNetworkClientBlazor, ServicesPiNetworkFacade>();
     services.AddScoped<IPiNetworkServerBlazor, PiNetworkServerBlazor>();
-    ...your rest code
+    //...your rest code
 
     services.AddPiNetwork(options =>
     {
             options.ApyKey = this.Configuration["PiNetwork:ApiKey"];
             options.BaseUrl = this.Configuration["PiNetwork:BaseUrl"];
     });
-
+    
+    //Add this two lines
     services.AddBlazoredSessionStorage();
     services.AddMemoryCache();
 
-    ...your rest code
+    //...your rest code
+
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
     {
-    ... your rest code
+
+    //... your rest code
+
     app.UseRouting();
     app.UseCookiePolicy(
             new CookiePolicyOptions
@@ -51,12 +55,13 @@ Modify Startup.cs file:
     );
     app.UseAuthentication();
     app.UseAuthorization();
-    ... your rest code
+    
+    //... your rest code
     }
 
-Now you will need to create some class to deal with PiNetwork callbacks. This class must be extended from abstract class PiNetworkClientBlazor. You will need to override methods to your needs. In example bellow your bussiness logic handler is IOrderServices.
+Now you will need to create class to deal with PiNetwPiNetwork.Blazor.Sdk callbacks. This class must be extended from abstract class PiNetworkClientBlazor. You will need to override some methods to your needs. In example bellow your bussiness logic handler is IOrderServices.
 
-Put this new class to Server side Blazor project. Lets call it ServicesPiNetworkFacade
+Put this new class to you Blazor project. Lets call this new class ServicesPiNetworkFacade
 
     public class ServicesPiNetworkFacade : PiNetworkClientBlazor
     {
@@ -80,13 +85,17 @@ Put this new class to Server side Blazor project. Lets call it ServicesPiNetwork
 
         public override async Task CreatePaymentOnReadyForServerApprovalCallBack(string paymentId)
         {
+            //...you code
             var result = await this.server.PaymentApprove(paymentId); //don't change this row.
+            //...app bussiness logic
             await this.orderServices.SavePaymentStatusPiNetwork(result.Metadata.OrderId, Enums.PaymentStatus.Waiting, null);
         }
 
         public override async Task CreatePaymentOnReadyForServerCompletionCallBack(string paymentId, string txid)
         {
+            //..you code
             var result = await this.server.PaymentComplete(paymentId, txid); //don't change this row
+            //...app bussiness logic
             await this.orderServices.SavePaymentStatusPiNetwork(result.Metadata.OrderId, Enums.PaymentStatus.AdditionalSuccess, txid);
             this.navigationManager.NavigateTo($"myorders/{result.Metadata.OrderId}", forceLoad: true);
         }
@@ -108,11 +117,11 @@ Put this new class to Server side Blazor project. Lets call it ServicesPiNetwork
         }
     }
 
-## SEE EXAMPLE FROM REAL PROJECT
+## SEE REAL WORLD PRODUCTION EXAMPLE
 See ServicesPiNetworkFacadeExample.md
 
 ## RETRIES
-By default if something fails PiNetworkClientBlazor will try to retry (if it is reasonable to do so) up to 10 times with 1000 milliseconds interval.
+By default if something fails PiNetworkClientBlazor will try to retry (if it is reasonable to do so and could solve problem) up to 10 times with 1000 milliseconds intervals.
 You can override this values in ServicesPiNetworkFacade:
 
     public virtual int Retries { get; set; } = 10;
@@ -121,11 +130,11 @@ You can override this values in ServicesPiNetworkFacade:
 
 ## USE ENUMS FOR MESSAGES IN PiNetworkConstantsEnums.cs
 See PiNetwork.Blazor.Sdk.ConstantsEnums for messages to pass to front side
+
     AuthenticationError = 0,
     PaymentError = 1,
     AuthenticationSuccess = 2,
     PaymentSuccess = 3
-
 
 ## USE CONSTANTS IN PiNetworkConstantsEnums.cs
     public const string PiNetworkSdkCallBackError = "PiNetworkSdkCallBackError";
@@ -136,7 +145,38 @@ If you don't need to redirect use constant "PiNetworkDoNotRedirect" this is used
 See ServicesPiNetworkFacadeExample.md.
 
 ## CHECK IF BROWSER IS PI NETWORK BROWSER
-PiNetworkClientBlazor.IsPiNetworkBrowser() this method is not from PI SDK.
+PiNetworkClientBlazor.IsPiNetworkBrowser() this method is not from PI SDK, but still very practical.
+
+## HOW TO AUTHENTICATE AND MAKE PAYMENTS FROM YOUR BLAZOR APP?
+
+### AUTHENTICATE
+Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
+
+    await this.piClient.Authenticate(redirectUri, 0); // 0 - first attempt
+
+If you don't need to redirect use ConstantsEnums.PiNetworkDoNotRedirect (if you provide just empty string it will redirect to "/").
+
+### MAKE PAYMENTS
+Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
+
+Thirst authenticate with ConstantsEnums.PiNetworkDoNotRedirect option. Authenticate every time before making payment.
+
+    await this.piClient.Authenticate(ConstantsEnums.PiNetworkDoNotRedirect, 0); // 0 - first attempt
+
+Second make payment
+
+    //memo - order discription. Don't exceed 25 characters.
+    //public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
+    
+    await this.piClient.CreatePayment(total, memo, OrderId);
+
+    
+
+    
+
+
+
+    
 
 
 

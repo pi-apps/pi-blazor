@@ -9,14 +9,14 @@ function onIncompletePaymentFound(payment) {
 
 (function () {
     window.PiNetworkBlazorSdk = {
-        Authenticate: function (dotNetHelper, redirectUri) {
+        Authenticate: function (dotNetHelper, redirectUri, retries) {
             myDotNetHelper = dotNetHelper;
             Pi.authenticate(scopes, onIncompletePaymentFound).then(function (auth) {
                 //alert(JSON.stringify(auth));
                 dotNetHelper.invokeMethodAsync('AuthenticateOnSuccess', auth, redirectUri);
             }).catch(function (error) {
                 //alert(JSON.stringify(error));
-                dotNetHelper.invokeMethodAsync('AuthenticateOnError', JSON.stringify(error, redirectUri));
+                dotNetHelper.invokeMethodAsync('AuthenticateOnError', JSON.stringify(error, redirectUri, retries));
             });
         },
         CreatePayment: function (dotNetHelper, amountMe, memoMe, orderIdMe) {

@@ -43,7 +43,7 @@ namespace PiNetwork.Blazor.Sdk
             this.logger = loggerFactory.CreateLogger(this.GetType().Name);
         }
 
-        public virtual async Task Authenticate(string redirectUri)
+        public virtual async Task Authenticate(string redirectUri, int retries = 0)
         {
             if (this.logger is { })
                 this.logger.LogInformation("Method: {@Method}", nameof(Authenticate));
@@ -57,7 +57,7 @@ namespace PiNetwork.Blazor.Sdk
 
             try
             {
-                await PiNetworkJavascript.Authenticate(jsRuntime, objRef, redirectUri);
+                await PiNetworkJavascript.Authenticate(jsRuntime, objRef, redirectUri, retries);
             }
             catch (Exception e)
             {
@@ -70,10 +70,18 @@ namespace PiNetwork.Blazor.Sdk
             }
         }
 
-        public abstract Task AuthenticateOnErrorCallBack(string error, string redirectUri);
+        public abstract Task AuthenticateOnErrorCallBack(string error, string redirectUri, int retries = 0);
 
         public abstract Task AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri);
 
+        /// <summary>
+        /// Make payment
+        /// </summary>
+        /// <param name="amount">amount to charge</param>
+        /// <param name="memo">text to display. Limit to 25 characters</param>
+        /// <param name="orderId">your order id</param>
+        /// <param name="retries">0 for first attempt</param>
+        /// <returns></returns>
         public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
         {
             DotNetObjectReference<PiNetworkMain> objRef;

@@ -5,9 +5,9 @@ namespace PiNetwork.Blazor.Sdk
 {
     public interface IPiNetworkClientBlazor
     {
-        Task Authenticate(string redirectUri);
+        Task Authenticate(string redirectUri, int retries = 0);
 
-        Task AuthenticateOnErrorCallBack(string error, string redirectUri);
+        Task AuthenticateOnErrorCallBack(string error, string redirectUri, int retries = 0);
 
         Task AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri);
 

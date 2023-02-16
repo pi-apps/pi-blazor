@@ -50,10 +50,15 @@
                 this.authenticationState = authenticationState;
             }
 
-            public override async Task AuthenticateOnErrorCallBack(string error, string redirectUri)
+            public override int Retries { get; set; } = 8;
+
+            public override async Task AuthenticateOnErrorCallBack(string error, string redirectUri, int retries = 0)
             {
-                if (string.IsNullOrEmpty(error) || error.Equals("{}"))
+                if (retries <= base.Retries && (string.IsNullOrEmpty(error) || error.Equals("{}")))
+                {
                     this.logger.LogWarning("Method: {@Method}. Error: {@Error}", nameof(AuthenticateOnErrorCallBack), error);
+                    await Authenticate(redirectUri, retries + 1);
+                }
                 else
                     this.logger.LogError("Method: {@Method}. Error: {@Error}", nameof(AuthenticateOnErrorCallBack), error);
 

@@ -5,8 +5,8 @@ namespace PiNetwork.Blazor.Sdk.Javascript
 {
     public sealed class PiNetworkJavascript
     {
-        public static ValueTask Authenticate(IJSRuntime jsRuntime, DotNetObjectReference<Pages.PiNetworkMain> reference, string redirectUri)
-            => jsRuntime.InvokeVoidAsync("PiNetworkBlazorSdk.Authenticate", reference, redirectUri);
+        public static ValueTask Authenticate(IJSRuntime jsRuntime, DotNetObjectReference<Pages.PiNetworkMain> reference, string redirectUri, int retries)
+            => jsRuntime.InvokeVoidAsync("PiNetworkBlazorSdk.Authenticate", reference, redirectUri, retries);
 
         public static ValueTask CreatePayment(IJSRuntime jsRuntime, DotNetObjectReference<Pages.PiNetworkMain> reference, decimal amount, string memo, int orderId)
             => jsRuntime.InvokeVoidAsync("PiNetworkBlazorSdk.CreatePayment", reference, amount, memo, orderId);
