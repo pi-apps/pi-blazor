@@ -6,7 +6,11 @@ See LICENSE.md file for more details
 Clone project, add to your solution.
 This setup is for server side Blazor, but for WASM blazor (client side) would be good as well.
 
-Add lines to your Blazor project appsettings.json
+Add line to your Blazor project `_Host.cshtml`
+
+`<script>src="_content/PiNetwork.Blazor.Sdk/PiNetwork.Blazor.Sdk.js"</script>`
+    
+Add lines to your Blazor project `appsettings.json`
 
     "PiNetwork": {
         "ApiKey": "YourApiKey",
@@ -16,7 +20,7 @@ Add lines to your Blazor project appsettings.json
 
 Add reference to your Blazor project to this PiNetwork.Blazor.Sdk
 
-Modify your Blazor project Startup.cs file:
+Modify your Blazor project `Startup.cs` file:
 
     public void ConfigureServices(IServiceCollection services)
     {
@@ -166,7 +170,7 @@ If you don't need to redirect use ConstantsEnums.PiNetworkDoNotRedirect (if you 
 ### MAKE PAYMENTS
 Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
 
-Thirst authenticate with ConstantsEnums.PiNetworkDoNotRedirect option. Authenticate every time before making payment.
+First authenticate with ConstantsEnums.PiNetworkDoNotRedirect option. Authenticate every time before making payment.
 
     await this.piClient.Authenticate(ConstantsEnums.PiNetworkDoNotRedirect, 0); // 0 - first attempt
 
