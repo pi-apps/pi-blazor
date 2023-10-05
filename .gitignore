@@ -37,8 +37,7 @@
 *.svclog
 *.scc
 
-/Development/Design/Desing Template/waterboat
-/Jobs/App_Data/CertificatesGenerated/
-/PiNetwork.Blazor.Sdk/.vs/PiNetwork.Blazor.Sdk/v17/.suo
-/PiNetwork.Blazor.Sdk/.vs/PiNetwork.Blazor.Sdk/FileContentIndex/81f86c88-9673-4720-8953-89d6ea53435c.vsidx
-/PiNetwork.Blazor.Sdk/.vs/PiNetwork.Blazor.Sdk/FileContentIndex/7aea387e-e587-4ee9-a36e-384cd6c4bc86.vsidx
+*.suo
+*.vsidx
+desktop.ini
+/desktop.ini
