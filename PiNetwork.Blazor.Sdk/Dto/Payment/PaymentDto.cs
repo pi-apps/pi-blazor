@@ -19,11 +19,20 @@ namespace PiNetwork.Blazor.Sdk.Dto.Payment
         [JsonPropertyName("metadata")]
         public Metadata Metadata { get; set; }
 
+        [JsonPropertyName("from_address")]
+        public string FromAddress { get; set; }
+
         [JsonPropertyName("to_address")]
         public string ToAddress { get; set; }
 
+        [JsonPropertyName("direction")]
+        public string Direction { get; set; }
+
         [JsonPropertyName("created_at")]
         public string CreatedAt { get; set; }
+
+        [JsonPropertyName("network")]
+        public string Network { get; set; }
 
         [JsonPropertyName("status")]
         public Status Status { get; set; }

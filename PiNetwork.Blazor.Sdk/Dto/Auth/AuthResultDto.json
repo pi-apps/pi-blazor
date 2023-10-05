@@ -2,6 +2,13 @@
   "accessToken": "string",
   "user": {
     "uid": "string",
-    "username": "string"
+    "username": "string",
+    "credentials": {
+      "scopes": "Array<Scope>", // a list of granted scopes
+      "valid_until": {
+        "timestamp": "number",
+        "iso8601": "string"
+      }
+    }
   }
 }

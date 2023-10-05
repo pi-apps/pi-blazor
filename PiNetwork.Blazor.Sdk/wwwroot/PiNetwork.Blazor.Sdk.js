@@ -1,4 +1,4 @@
-﻿const scopes = ['payments', 'username'];
+﻿const scopes = ['payments', 'username', 'wallet_address'];
 let myDotNetHelper;
 
 function onIncompletePaymentFound(payment) {

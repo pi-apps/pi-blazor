@@ -7,8 +7,11 @@
     "orderId": 123,
     "chalangesIds": [ 1, 2, 3 ]
   },
+  "from_address": "string",
   "to_address": "string",
+  "direction": "string",
   "created_at": "string",
+  "network": "string",
   "status": {
     "developer_approved": true,
     "transaction_verified": true,
