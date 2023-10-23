@@ -13,7 +13,7 @@ function onIncompletePaymentFound(payment) {
             myDotNetHelper = dotNetHelper;
             Pi.authenticate(scopes, onIncompletePaymentFound).then(function (auth) {
                 //alert(JSON.stringify(auth));
-                dotNetHelper.invokeMethodAsync('AuthenticateOnSuccess', auth, redirectUri);
+                dotNetHelper.invokeMethodAsync('AuthenticateOnSuccess', JSON.stringify(auth), redirectUri);
             }).catch(function (error) {
                 //alert(JSON.stringify(error));
                 dotNetHelper.invokeMethodAsync('AuthenticateOnError', JSON.stringify(error, redirectUri, retries));
@@ -53,14 +53,6 @@ function onIncompletePaymentFound(payment) {
         },
         OpenShareDialog: function (title, message) {
             Pi.openShareDialog(title, message);
-        },
-        Test: function () {
-            DotNet.invokeMethodAsync('PiNetwork.Blazor.Sdk', 'Test', 'Testing text from invoked')
-                .then(data => {
-                    alert(data);
-                });
-
-            return "Testing text from return";
         }
     };
     window.Browser = {
@@ -69,8 +61,5 @@ function onIncompletePaymentFound(payment) {
                 dotNetHelper.invokeMethodAsync('IsPiNetworkBrowser');
             }
         }
-    };
-    window.Test2 = (dotNetHelper) => {
-        dotNetHelper.invokeMethodAsync('Test2', 'testas2');
     };
 })();

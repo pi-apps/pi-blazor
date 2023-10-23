@@ -1,10 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PiNetwork.Blazor.Sdk.Dto.Payment
+namespace PiNetwork.Blazor.Sdk.Dto.Payment;
+
+public sealed class PaymentCompleteDto
 {
-    public sealed class PaymentCompleteDto
-    {
-        [JsonPropertyName("txid")]
-        public string Txid { get; set; }
-    }
+    [JsonPropertyName("txid")]
+    public string Txid { get; set; }
 }

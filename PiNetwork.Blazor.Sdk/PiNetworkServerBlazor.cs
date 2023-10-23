@@ -1,90 +1,99 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using PiNetwork.Blazor.Sdk.ConstantsEnums;
 using PiNetwork.Blazor.Sdk.Dto.Payment;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace PiNetwork.Blazor.Sdk
+namespace PiNetwork.Blazor.Sdk;
+
+public interface IPiNetworkServerBlazor
 {
-    public sealed class PiNetworkServerBlazor : IPiNetworkServerBlazor
+    Task<PaymentDto> PaymentApprove(string id);
+
+    Task<PaymentDto> PaymentComplete(string id, string txid);
+
+    Task<PaymentDto> PaymentGet(string id);
+}
+
+public sealed class PiNetworkServerBlazor : IPiNetworkServerBlazor
+{
+    private readonly ILogger logger;
+    private readonly IConfiguration configuration;
+    private readonly HttpClient httpClient;
+
+    public PiNetworkServerBlazor(IConfiguration configuration, IHttpClientFactory clientFactory, ILoggerFactory loggerFactory)
     {
-        private readonly ILogger logger;
-        private readonly IConfiguration configuration;
-        private readonly HttpClient httpClient;
+        this.logger = loggerFactory.CreateLogger(this.GetType().Name);
+        this.configuration = configuration;
+        this.httpClient = clientFactory.CreateClient(PiNetworkConstants.PiNetworkClient);
+    }
 
-        public PiNetworkServerBlazor(IConfiguration configuration, IHttpClientFactory clientFactory, ILoggerFactory loggerFactory)
+    public async Task<PaymentDto> PaymentGet(string id)
+    {
+        try
         {
-            this.logger = loggerFactory.CreateLogger(this.GetType().Name);
-            this.configuration = configuration;
-            this.httpClient = clientFactory.CreateClient("PiNetworkClient");
+            if (this.logger is { })
+                this.logger.LogInformation("Method: {@Method}. Id: {Id}", nameof(PaymentGet), id);
+
+            var result = await this.httpClient.GetFromJsonAsync<PaymentDto>($"payments/{id}");
+            return result;
         }
-
-        public async Task<PaymentDto> PaymentGet(string id)
+        catch (Exception e)
         {
-            try
-            {
-                if (this.logger is { })
-                    this.logger.LogInformation("Method: {@Method}. Id: {Id}", nameof(PaymentGet), id);
+            if (this.logger is { })
+                this.logger.LogError(e, "Method: {@Method}. Id: {Id}", nameof(PaymentGet), id);
+            throw;
+        }
+    }
 
-                var result = await this.httpClient.GetFromJsonAsync<PaymentDto>($"payments/{id}");
+    public async Task<PaymentDto> PaymentApprove(string id)
+    {
+        try
+        {
+            if (this.logger is { })
+                this.logger.LogInformation("Method: {@Method}. Id: {Id}", nameof(PaymentApprove), id);
+
+            var httpResponse = await this.httpClient.PostAsync($"payments/{id}/approve", new StringContent("application/json"));
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var result = await httpResponse.Content.ReadFromJsonAsync<PaymentDto>();
                 return result;
             }
-            catch (Exception e)
-            {
-                if (this.logger is { })
-                    this.logger.LogError(e, "Method: {@Method}. Id: {Id}", nameof(PaymentGet), id);
-                throw;
-            }
+            else
+                throw new HttpRequestException($"Method: {nameof(PaymentApprove)}. Http status code is not success: {httpResponse.StatusCode}");
         }
-
-        public async Task<PaymentDto> PaymentApprove(string id)
+        catch (Exception e)
         {
-            try
-            {
-                if (this.logger is { })
-                    this.logger.LogInformation("Method: {@Method}. Id: {Id}", nameof(PaymentApprove), id);
-
-                var httpResponse = await this.httpClient.PostAsync($"payments/{id}/approve", new StringContent("application/json"));
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var result = await httpResponse.Content.ReadFromJsonAsync<PaymentDto>();
-                    return result;
-                }
-                else
-                    throw new HttpRequestException($"Method: {nameof(PaymentApprove)}. Http status code is not success: {httpResponse.StatusCode}");
-            }
-            catch (Exception e)
-            {
-                if (this.logger is { })
-                    this.logger.LogError(e, "Method: {@Method}. Id: {Id}", nameof(PaymentApprove), id);
-                throw;
-            }
+            if (this.logger is { })
+                this.logger.LogError(e, "Method: {@Method}. Id: {Id}", nameof(PaymentApprove), id);
+            throw;
         }
+    }
 
-        public async Task<PaymentDto> PaymentComplete(string id, string txid)
+    public async Task<PaymentDto> PaymentComplete(string id, string txid)
+    {
+        try
         {
-            try
-            {
-                if (this.logger is { })
-                    this.logger.LogInformation("Method: {@Method}. Id: {Id}", nameof(PaymentComplete), id);
+            if (this.logger is { })
+                this.logger.LogInformation("Method: {@Method}. Id: {Id}", nameof(PaymentComplete), id);
 
-                var httpResponse = await this.httpClient.PostAsJsonAsync($"payments/{id}/complete", new PaymentCompleteDto { Txid = txid });
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var result = await httpResponse.Content.ReadFromJsonAsync<PaymentDto>();
-                    return result;
-                }
-                else
-                    throw new HttpRequestException($"Method: {nameof(PaymentComplete)}. Http status code is not success: {httpResponse.StatusCode}");
-            }
-            catch (Exception e)
+            var httpResponse = await this.httpClient.PostAsJsonAsync($"payments/{id}/complete", new PaymentCompleteDto { Txid = txid });
+            if (httpResponse.IsSuccessStatusCode)
             {
-                if (this.logger is { })
-                    this.logger.LogError(e, "Method: {@Method}. Id: {Id}", nameof(PaymentComplete), id);
-                throw;
+                var result = await httpResponse.Content.ReadFromJsonAsync<PaymentDto>();
+                return result;
             }
+            else
+                throw new HttpRequestException($"Method: {nameof(PaymentComplete)}. Http status code is not success: {httpResponse.StatusCode}");
+        }
+        catch (Exception e)
+        {
+            if (this.logger is { })
+                this.logger.LogError(e, "Method: {@Method}. Id: {Id}", nameof(PaymentComplete), id);
+            throw;
         }
     }
 }

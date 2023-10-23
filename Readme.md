@@ -37,6 +37,10 @@ Modify your Blazor project `Startup.cs` file:
     
     //Add this two lines PiNetwork.Blazor.Sdk uses SessionStorage and MemoryCache
     services.AddBlazoredSessionStorage();
+    
+    // for server side blazor to protect agains multiple callbacks 
+    // in your abstract class PiNetworkClientBlazor implementation (read bellow)
+    // for wasm use session storage instead
     services.AddMemoryCache();
 
     //...your rest code
@@ -180,15 +184,3 @@ Now make payment
     //public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
     
     await this.piClient.CreatePayment(total, memo, OrderId);
-
-    
-
-    
-
-
-
-    
-
-
-
-

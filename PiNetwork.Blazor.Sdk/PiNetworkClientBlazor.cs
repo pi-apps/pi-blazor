@@ -2,175 +2,196 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using PiNetwork.Blazor.Sdk.Dto.Auth;
 using PiNetwork.Blazor.Sdk.Javascript;
 using PiNetwork.Blazor.Sdk.Pages;
 using System;
 using System.Threading.Tasks;
 
-namespace PiNetwork.Blazor.Sdk
+namespace PiNetwork.Blazor.Sdk;
+
+public interface IPiNetworkClientBlazor
 {
-    public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
+    Task Authenticate(string redirectUri, int retries = 0);
+
+    Task AuthenticateOnErrorCallBack(string error, string redirectUri, int retries = 0);
+
+    Task AuthenticateOnSuccessCallBack(string username, string redirectUri);
+
+    Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0);
+
+    Task CreatePaymentOnReadyForServerApprovalCallBack(string paymentId, int retries = 0);
+
+    Task CreatePaymentOnReadyForServerCompletionCallBack(string paymentId, string txid, int retries = 0);
+
+    Task CreatePaymentOnCancelCallBack(string paymentId);
+
+    Task CreatePaymentOnErrorCallBack(string paymentId, string txid);
+
+    Task OpenShareDialog(string title, string messsage);
+
+    Task IsPiNetworkBrowser();
+}
+
+public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
+{
+    private readonly ILoggerFactory loggerFactory;
+
+    private readonly ILogger logger;
+    protected readonly NavigationManager navigationManager;
+    protected readonly IJSRuntime jsRuntime;
+    private readonly ISessionStorageService sessionStorage;
+
+    /// <summary>
+    /// Number of retries to make if error / message content is usafull for making retry.
+    /// </summary>
+    public virtual int Retries { get; set; } = 10;
+
+    /// <summary>
+    /// Delay in milliseconds
+    /// </summary>
+    public virtual int RetryDelay { get; set; } = 1000;
+
+    public PiNetworkClientBlazor(NavigationManager navigationManager, IJSRuntime jsRuntime, ISessionStorageService sessionStorage)
     {
-        private readonly ILoggerFactory loggerFactory;
+        this.jsRuntime = jsRuntime;
+        this.navigationManager = navigationManager;
+        this.sessionStorage = sessionStorage;
+    }
 
-        private readonly ILogger logger;
-        protected readonly NavigationManager navigationManager;
-        protected readonly IJSRuntime jsRuntime;
-        private readonly ISessionStorageService sessionStorage;
+    public PiNetworkClientBlazor(NavigationManager navigationManager, IJSRuntime jsRuntime, ISessionStorageService sessionStorage, ILoggerFactory loggerFactory)
+        : this(navigationManager, jsRuntime, sessionStorage)
+    {
+        this.loggerFactory = loggerFactory;
+        this.logger = loggerFactory.CreateLogger(this.GetType().Name);
+    }
 
-        /// <summary>
-        /// Number of retries to make if error / message content is usafull for making retry.
-        /// </summary>
-        public virtual int Retries { get; set; } = 10;
+    public virtual async Task Authenticate(string redirectUri, int retries = 0)
+    {
+        if (this.logger is { })
+            this.logger.LogInformation("Method: {@Method}", nameof(Authenticate));
 
-        /// <summary>
-        /// Delay in milliseconds
-        /// </summary>
-        public virtual int RetryDelay { get; set; } = 1000;
+        DotNetObjectReference<PiNetworkMain> objRef;
 
-        public PiNetworkClientBlazor(NavigationManager navigationManager, IJSRuntime jsRuntime, ISessionStorageService sessionStorage)
+        if (this.logger is { })
+            objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage, this.loggerFactory));
+        else
+            objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage));
+
+        try
         {
-            this.jsRuntime = jsRuntime;
-            this.navigationManager = navigationManager;
-            this.sessionStorage = sessionStorage;
+            await PiNetworkJavascript.Authenticate(jsRuntime, objRef, redirectUri, retries);
         }
-
-        public PiNetworkClientBlazor(NavigationManager navigationManager, IJSRuntime jsRuntime, ISessionStorageService sessionStorage, ILoggerFactory loggerFactory)
-            : this(navigationManager, jsRuntime, sessionStorage)
-        {
-            this.loggerFactory = loggerFactory;
-            this.logger = loggerFactory.CreateLogger(this.GetType().Name);
-        }
-
-        public virtual async Task Authenticate(string redirectUri, int retries = 0)
+        catch (Exception e)
         {
             if (this.logger is { })
-                this.logger.LogInformation("Method: {@Method}", nameof(Authenticate));
+                this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(Authenticate), e.Message);
 
-            DotNetObjectReference<PiNetworkMain> objRef;
+            await this.sessionStorage.SetItemAsync(ConstantsEnums.PiNetworkConstants.PiNetworkSdkCallBackError, ConstantsEnums.Messages.AuthenticationError);
 
+            this.navigationManager.NavigateTo($"/", forceLoad: true);
+        }
+    }
+
+    public abstract Task AuthenticateOnErrorCallBack(string error, string redirectUri, int retries = 0);
+
+    public abstract Task AuthenticateOnSuccessCallBack(string username, string redirectUri);
+
+    /// <summary>
+    /// Make payment
+    /// </summary>
+    /// <param name="amount">amount to charge</param>
+    /// <param name="memo">text to display. Limit to 25 characters</param>
+    /// <param name="orderId">your order id</param>
+    /// <param name="retries">0 for first attempt</param>
+    /// <returns></returns>
+    public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
+    {
+        DotNetObjectReference<PiNetworkMain> objRef;
+
+        if (this.logger is { })
+            objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage, this.loggerFactory));
+        else
+            objRef = DotNetObjectReference.Create(new PiNetworkMain(navigationManager, this, sessionStorage));
+
+        try
+        {
+            await PiNetworkJavascript.CreatePayment(jsRuntime, objRef, amount, memo, orderId);
+        }
+        catch (TaskCanceledException e)
+        {
             if (this.logger is { })
-                objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage, this.loggerFactory));
-            else
-                objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage));
-
-            try
+                this.logger.LogWarning(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
+        }
+        catch (Exception e)
+        {
+            //Some exceptions can be practical to retrie. They can be added here. Max 3 retries for client side.
+            if (e is JSException)
             {
-                await PiNetworkJavascript.Authenticate(jsRuntime, objRef, redirectUri, retries);
+                string textToSearch = "Cannot create a payment without \"payments\" scope";
+
+                if (CreatePaymentExceptionMessageValidation(e, textToSearch) && retries <= this.Retries)
+                {
+                    await Task.Delay(this.RetryDelay);
+                    await CreatePayment(amount, memo, orderId, retries + 1);
+                }
+                else
+                    await CreatePaymentExceptionProccess(e, textToSearch);
             }
-            catch (Exception e)
+            else
             {
                 if (this.logger is { })
-                    this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(Authenticate), e.Message);
+                    this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
 
-                await this.sessionStorage.SetItemAsync(ConstantsEnums.ConstantsEnums.PiNetworkSdkCallBackError, ConstantsEnums.Messages.AuthenticationError);
+                await this.sessionStorage.SetItemAsync(ConstantsEnums.PiNetworkConstants.PiNetworkSdkCallBackError, ConstantsEnums.Messages.PaymentError);
 
                 this.navigationManager.NavigateTo($"/", forceLoad: true);
             }
         }
+    }
 
-        public abstract Task AuthenticateOnErrorCallBack(string error, string redirectUri, int retries = 0);
+    public abstract Task CreatePaymentOnReadyForServerApprovalCallBack(string paymentId, int reties = 0);
 
-        public abstract Task AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri);
+    public abstract Task CreatePaymentOnReadyForServerCompletionCallBack(string paymentId, string txid, int retries = 0);
 
-        /// <summary>
-        /// Make payment
-        /// </summary>
-        /// <param name="amount">amount to charge</param>
-        /// <param name="memo">text to display. Limit to 25 characters</param>
-        /// <param name="orderId">your order id</param>
-        /// <param name="retries">0 for first attempt</param>
-        /// <returns></returns>
-        public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
-        {
-            DotNetObjectReference<PiNetworkMain> objRef;
+    public abstract Task CreatePaymentOnCancelCallBack(string paymentId);
 
-            if (this.logger is { })
-                objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage, this.loggerFactory));
-            else
-                objRef = DotNetObjectReference.Create(new PiNetworkMain(navigationManager, this, sessionStorage));
+    public abstract Task CreatePaymentOnErrorCallBack(string paymentId, string txid);
 
-            try
-            {
-                await PiNetworkJavascript.CreatePayment(jsRuntime, objRef, amount, memo, orderId);
-            }
-            catch (TaskCanceledException e)
-            {
-                if (this.logger is { })
-                    this.logger.LogWarning(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
-            }
-            catch (Exception e)
-            {
-                //Some exceptions can be practical to retrie. They can be added here. Max 3 retries for client side.
-                if (e is JSException)
-                {
-                    string textToSearch = "Cannot create a payment without \"payments\" scope";
+    public virtual async Task OpenShareDialog(string title, string message)
+    {
+        await PiNetworkJavascript.OpenShareDialog(jsRuntime, title, message);
+    }
 
-                    if (CreatePaymentExceptionMessageValidation(e, textToSearch) && retries <= this.Retries)
-                    {
-                        await Task.Delay(this.RetryDelay);
-                        await CreatePayment(amount, memo, orderId, retries + 1);
-                    }
-                    else
-                        await CreatePaymentExceptionProccess(e, textToSearch);
-                }
-                else
-                {
-                    if (this.logger is { })
-                        this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
+    /// <summary>
+    /// This method is not from Pi network SDK
+    /// </summary>
+    /// <returns></returns>
+    public virtual async Task IsPiNetworkBrowser()
+    {
+        DotNetObjectReference<PiNetworkMain> objRef;
 
-                    await this.sessionStorage.SetItemAsync(ConstantsEnums.ConstantsEnums.PiNetworkSdkCallBackError, ConstantsEnums.Messages.PaymentError);
+        if (this.logger is { })
+            objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage, this.loggerFactory));
+        else
+            objRef = DotNetObjectReference.Create(new PiNetworkMain(navigationManager, this, sessionStorage));
 
-                    this.navigationManager.NavigateTo($"/", forceLoad: true);
-                }
-            }
-        }
+        await PiNetworkJavascript.IsPiNetworkBrowser(jsRuntime, objRef);
+    }
 
-        public abstract Task CreatePaymentOnReadyForServerApprovalCallBack(string paymentId, int reties = 0);
+    protected static bool CreatePaymentExceptionMessageValidation(Exception e, string text) =>
+        (!string.IsNullOrEmpty(e.Message) && e.Message.Contains(text)) ||
+        (e.InnerException is { } && !string.IsNullOrEmpty(e.InnerException.Message) && e.Message.Contains(text)) ||
+        (!string.IsNullOrEmpty(e.StackTrace) && e.StackTrace.Contains(text));
 
-        public abstract Task CreatePaymentOnReadyForServerCompletionCallBack(string paymentId, string txid, int retries = 0);
+    protected async Task CreatePaymentExceptionProccess(Exception e, string text)
+    {
+        if (this.logger is { } && CreatePaymentExceptionMessageValidation(e, text))
+            this.logger.LogWarning(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
+        else if (this.logger is { })
+            this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
 
-        public abstract Task CreatePaymentOnCancelCallBack(string paymentId);
+        await this.sessionStorage.SetItemAsync(ConstantsEnums.PiNetworkConstants.PiNetworkSdkCallBackError, ConstantsEnums.Messages.PaymentError);
 
-        public abstract Task CreatePaymentOnErrorCallBack(string paymentId, string txid);
-
-        public virtual async Task OpenShareDialog(string title, string message)
-        {
-            await PiNetworkJavascript.OpenShareDialog(jsRuntime, title, message);
-        }
-
-        /// <summary>
-        /// This method is not from Pi network SDK
-        /// </summary>
-        /// <returns></returns>
-        public virtual async Task IsPiNetworkBrowser()
-        {
-            DotNetObjectReference<PiNetworkMain> objRef;
-
-            if (this.logger is { })
-                objRef = DotNetObjectReference.Create(new PiNetworkMain(this.navigationManager, this, this.sessionStorage, this.loggerFactory));
-            else
-                objRef = DotNetObjectReference.Create(new PiNetworkMain(navigationManager, this, sessionStorage));
-
-            await PiNetworkJavascript.IsPiNetworkBrowser(jsRuntime, objRef);
-        }
-
-        protected static bool CreatePaymentExceptionMessageValidation(Exception e, string text) =>
-            (!string.IsNullOrEmpty(e.Message) && e.Message.Contains(text)) ||
-            (e.InnerException is { } && !string.IsNullOrEmpty(e.InnerException.Message) && e.Message.Contains(text)) ||
-            (!string.IsNullOrEmpty(e.StackTrace) && e.StackTrace.Contains(text));
-
-        protected async Task CreatePaymentExceptionProccess(Exception e, string text)
-        {
-            if (this.logger is { } && CreatePaymentExceptionMessageValidation(e, text))
-                this.logger.LogWarning(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
-            else if (this.logger is { })
-                this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
-
-            await this.sessionStorage.SetItemAsync(ConstantsEnums.ConstantsEnums.PiNetworkSdkCallBackError, ConstantsEnums.Messages.PaymentError);
-
-            this.navigationManager.NavigateTo($"/", forceLoad: false);
-        }
+        this.navigationManager.NavigateTo($"/", forceLoad: false);
     }
 }

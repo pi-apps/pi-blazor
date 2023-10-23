@@ -1,0 +1,8 @@
+[
+  {
+    "outputFileName": "wwwroot/PiNetwork.Blazor.Sdk.min.js",
+    "inputFiles": [
+      "wwwroot/PiNetwork.Blazor.Sdk.js"
+    ]
+  }
+]

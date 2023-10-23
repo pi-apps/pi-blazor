@@ -1,73 +1,70 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PiNetwork.Blazor.Sdk.ConstantsEnums;
 using Polly;
 using System;
-using System.Diagnostics;
 using System.Net.Http.Headers;
 
-namespace PiNetwork.Blazor.Sdk
+namespace PiNetwork.Blazor.Sdk;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddPiNetwork(this IServiceCollection services, Action<PiNetworkOptions> configure)
     {
-        public static IServiceCollection AddPiNetwork(this IServiceCollection services, Action<PiNetworkOptions> configure)
+        try
         {
-            try
+            if (configure is null)
+                throw new PiNetworkException("PiNetwork configuration can't be null");
+
+            PiNetworkOptions item = new();
+            configure.Invoke(item);
+
+            if (item is null)
+                throw new PiNetworkException("PiNetwork configuration can't be null");
+
+            if (string.IsNullOrEmpty(item.ApyKey))
+                throw new PiNetworkException("PiNetwork configuration ApiKey can't be null");
+
+            if (string.IsNullOrEmpty(item.BaseUrl))
+                throw new PiNetworkException("PiNetwork configuration BaseUrl can't be null");
+
+            string url = GetUrlFull(item.BaseUrl);
+
+            services.AddHttpClient(PiNetworkConstants.PiNetworkClient, client =>
             {
-                if (configure is null)
-                    throw new PiNetworkException("PiNetwork configuration can't be null");
+                client.BaseAddress = new Uri(url);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Key", item.ApyKey);
+            }).AddTransientHttpErrorPolicy(s => s.WaitAndRetryAsync(3, times => TimeSpan.FromSeconds(times * 1)));
 
-                PiNetworkOptions item = new();
-                configure.Invoke(item);
+            if (!string.IsNullOrEmpty(item.BaseUrlFallback))
+            {
+                url = GetUrlFull(item.BaseUrlFallback);
 
-                if (item is null)
-                    throw new PiNetworkException("PiNetwork configuration can't be null");
-
-                if (string.IsNullOrEmpty(item.ApyKey))
-                    throw new PiNetworkException("PiNetwork configuration ApiKey can't be null");
-
-                if (string.IsNullOrEmpty(item.BaseUrl))
-                    throw new PiNetworkException("PiNetwork configuration BaseUrl can't be null");
-
-                string url = GetUrlFull(item.BaseUrl);
-
-                services.AddHttpClient("PiNetworkClient", client =>
+                services.AddHttpClient(PiNetworkConstants.PiNetworkClientFallback, client =>
                 {
                     client.BaseAddress = new Uri(url);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Key", item.ApyKey);
-                }).AddTransientHttpErrorPolicy(s => s.WaitAndRetryAsync(3, times => TimeSpan.FromSeconds(times * 1)));
-
-                if (!string.IsNullOrEmpty(item.BaseUrlFallback))
-                {
-                    url = GetUrlFull(item.BaseUrlFallback);
-
-                    services.AddHttpClient("PiNetworkClientFallback", client =>
-                    {
-                        client.BaseAddress = new Uri(url);
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Key", item.ApyKey);
-                    }).AddTransientHttpErrorPolicy(s => s.WaitAndRetryAsync(3, times => TimeSpan.FromMilliseconds(times * 300)));
-                }
-
-                return services;
+                }).AddTransientHttpErrorPolicy(s => s.WaitAndRetryAsync(3, times => TimeSpan.FromMilliseconds(times * 300)));
             }
-            catch (PiNetworkException e)
-            {
-                Debug.WriteLine(e.Message);
-                throw;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"Method {nameof(AddPiNetwork)}. Exception {e.Message}. Inner Exception {e.InnerException.Message}");
-                throw;
-            }
+
+            return services;
         }
-
-        public static string GetUrlFull(string urlOriginal)
+        catch (PiNetworkException)
         {
-            ReadOnlySpan<char> url = urlOriginal;
-
-            if (url.Slice(url.Length - 1) == "/")
-                return urlOriginal;
-
-            return $"{urlOriginal}/";
+            throw;
         }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public static string GetUrlFull(string urlOriginal)
+    {
+        ReadOnlySpan<char> url = urlOriginal;
+
+        if (url.Slice(url.Length - 1) == "/")
+            return urlOriginal;
+
+        return $"{urlOriginal}/";
     }
 }
