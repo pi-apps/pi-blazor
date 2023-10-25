@@ -101,6 +101,6 @@ public partial class PiNetworkMain : ComponentBase
                 if (this.logger is { })
                     this.logger.LogInformation("Method: {@Method}. {@Value}", nameof(IsPiNetworkBrowser), true);
         */
-        await this.sessionStorage.SetItemAsStringAsync(ConstantsEnums.PiNetworkConstants.IsPiNetworkBrowser, "1");
+        await this.sessionStorage.SetItemAsStringAsync(Common.PiNetworkConstants.IsPiNetworkBrowser, "1");
     }
 }

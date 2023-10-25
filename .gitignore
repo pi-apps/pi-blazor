@@ -42,3 +42,6 @@
 *.vsidx
 desktop.ini
 /desktop.ini
+
+bundleconfig.json
+ReadmeInternal.md

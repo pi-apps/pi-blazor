@@ -1,0 +1,11 @@
+{
+  "uid": "4be92209-125d-4a5c-b3f8-a094a615daa4",
+  "credentials": {
+    "scopes": [ "payments", "username", "wallet_address", "platform" ],
+    "valid_until": {
+      "timestamp": 1698224114,
+      "iso8601": "2023-10-25T08:55:14Z"
+    }
+  },
+  "username": "username"
+}

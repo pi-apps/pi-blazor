@@ -79,14 +79,14 @@ public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
 
         try
         {
-            await PiNetworkJavascript.Authenticate(jsRuntime, objRef, redirectUri, retries);
+            await PiNetworkCallJavascript.Authenticate(jsRuntime, objRef, redirectUri, retries);
         }
         catch (Exception e)
         {
             if (this.logger is { })
                 this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(Authenticate), e.Message);
 
-            await this.sessionStorage.SetItemAsync(ConstantsEnums.PiNetworkConstants.PiNetworkSdkCallBackError, ConstantsEnums.Messages.AuthenticationError);
+            await this.sessionStorage.SetItemAsync(Common.PiNetworkConstants.PiNetworkSdkCallBackError, Common.Messages.AuthenticationError);
 
             this.navigationManager.NavigateTo($"/", forceLoad: true);
         }
@@ -115,7 +115,7 @@ public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
 
         try
         {
-            await PiNetworkJavascript.CreatePayment(jsRuntime, objRef, amount, memo, orderId);
+            await PiNetworkCallJavascript.CreatePayment(jsRuntime, objRef, amount, memo, orderId);
         }
         catch (TaskCanceledException e)
         {
@@ -142,7 +142,7 @@ public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
                 if (this.logger is { })
                     this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
 
-                await this.sessionStorage.SetItemAsync(ConstantsEnums.PiNetworkConstants.PiNetworkSdkCallBackError, ConstantsEnums.Messages.PaymentError);
+                await this.sessionStorage.SetItemAsync(Common.PiNetworkConstants.PiNetworkSdkCallBackError, Common.Messages.PaymentError);
 
                 this.navigationManager.NavigateTo($"/", forceLoad: true);
             }
@@ -159,7 +159,7 @@ public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
 
     public virtual async Task OpenShareDialog(string title, string message)
     {
-        await PiNetworkJavascript.OpenShareDialog(jsRuntime, title, message);
+        await PiNetworkCallJavascript.OpenShareDialog(jsRuntime, title, message);
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
         else
             objRef = DotNetObjectReference.Create(new PiNetworkMain(navigationManager, this, sessionStorage));
 
-        await PiNetworkJavascript.IsPiNetworkBrowser(jsRuntime, objRef);
+        await PiNetworkCallJavascript.IsPiNetworkBrowser(jsRuntime, objRef);
     }
 
     protected static bool CreatePaymentExceptionMessageValidation(Exception e, string text) =>
@@ -190,7 +190,7 @@ public abstract class PiNetworkClientBlazor : IPiNetworkClientBlazor
         else if (this.logger is { })
             this.logger.LogError(e, "Method: {@Method}. Message: {Message}", nameof(CreatePayment), e.Message);
 
-        await this.sessionStorage.SetItemAsync(ConstantsEnums.PiNetworkConstants.PiNetworkSdkCallBackError, ConstantsEnums.Messages.PaymentError);
+        await this.sessionStorage.SetItemAsync(Common.PiNetworkConstants.PiNetworkSdkCallBackError, Common.Messages.PaymentError);
 
         this.navigationManager.NavigateTo($"/", forceLoad: false);
     }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace PiNetwork.Blazor.Sdk.Javascript;
 
-public sealed class PiNetworkJavascript
+public static class PiNetworkCallJavascript
 {
     public static ValueTask Authenticate(IJSRuntime jsRuntime, DotNetObjectReference<Pages.PiNetworkMain> reference, string redirectUri, int retries)
         => jsRuntime.InvokeVoidAsync("PiNetworkBlazorSdk.Authenticate", reference, redirectUri, retries);

@@ -6,10 +6,9 @@ using Chall.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
 using PiNetwork.Blazor.Sdk;
-using PiNetwork.Blazor.Sdk.ConstantsEnums;
+using PiNetwork.Blazor.Sdk.Common;
 using PiNetwork.Blazor.Sdk.Dto.Auth;
 using System;
 using System.Net.Http;
@@ -18,27 +17,27 @@ using System.Threading.Tasks;
 
 namespace Chall.Server.Side.Infrastructure;
 
-public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
+public sealed class ServicesPiNetworkU2AFacade : PiNetworkClientBlazor
 {
     private readonly ILogger logger;
     private readonly ISessionStorageService sessionStorage;
-    private readonly IPiNetworkServerBlazor server;
+    private readonly IPiNetworkU2AServerBlazor server;
     private readonly IOrderService orderServices;
     private readonly IUserInfoService userInfoService;
     private readonly IMailingService mailingService;
     private readonly IMemoryCache cache;
     private readonly IPiNetworkAuthStateProvider authenticationState;
 
-    public ServicesPiNetworkFacade(ILoggerFactory loggerFactory,
-                                   NavigationManager navigationManager,
-                                   IJSRuntime jsRuntime,
-                                   ISessionStorageService sessionStorage,
-                                   IPiNetworkServerBlazor server,
-                                   IOrderService orderServices,
-                                   IUserInfoService userInfoService,
-                                   IMailingService mailingService,
-                                   IMemoryCache cache,
-                                   IPiNetworkAuthStateProvider authenticationState)
+    public ServicesPiNetworkU2AFacade(ILoggerFactory loggerFactory,
+                                      NavigationManager navigationManager,
+                                      IJSRuntime jsRuntime,
+                                      ISessionStorageService sessionStorage,
+                                      IPiNetworkU2AServerBlazor server,
+                                      IOrderService orderServices,
+                                      IUserInfoService userInfoService,
+                                      IMailingService mailingService,
+                                      IMemoryCache cache,
+                                      IPiNetworkAuthStateProvider authenticationState)
          : base(navigationManager, jsRuntime, sessionStorage, loggerFactory)
     {
         this.logger = loggerFactory.CreateLogger(this.GetType().Name);
@@ -84,7 +83,7 @@ public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
 
                 this.navigationManager.NavigateTo("signin/error");
             }
-            
+
             if (redirectUri.Equals(PiNetworkConstants.PiNetworkDoNotRedirect))
                 return;
 
@@ -126,7 +125,7 @@ public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
                 if (this.logger is { })
                     this.logger.LogInformation("Method: {@Method}. Result: {@Result}", nameof(CreatePaymentOnReadyForServerApprovalCallBack), result);
 
-                await this.orderServices.SavePaymentStatus(result.Metadata.OrderId, Enums.PaymentStatus.Approved, null);
+                await this.orderServices.SavePaymentStatus(result.Metadata.OrderId, Enums.PaymentStatus.Approved, null, null);
             }
         }
         catch (Exception e)
@@ -168,7 +167,7 @@ public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
                 if (this.logger is { })
                     this.logger.LogInformation("Method: {@Method}. Result: {@Result}", nameof(CreatePaymentOnReadyForServerCompletionCallBack), result);
 
-                await this.orderServices.SavePaymentStatus(result.Metadata.OrderId, Enums.PaymentStatus.Confirmed, txid);
+                await this.orderServices.SavePaymentStatus(result.Metadata.OrderId, Enums.PaymentStatus.Confirmed, txid, result.FromAddress);
                 await OrderStateChange();
 
                 var orderOriginal = await this.orderServices.GetAsync(result.Metadata.OrderId);
@@ -212,6 +211,9 @@ public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
 
                 if (this.logger is { })
                     this.logger.LogInformation("Method: {@Method}. PaymentId: {@PaymentId}", nameof(CreatePaymentOnCancelCallBack), paymentId);
+
+                await server.PaymentCancel(paymentId);
+
                 await OrderStateChange();
 
                 this.navigationManager.NavigateTo($"/", forceLoad: true);
@@ -221,7 +223,8 @@ public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
         {
             if (this.logger is { })
                 this.logger.LogErrorMy(e, "Method: {@Method}. PaymentId: {@PaymentId}", nameof(CreatePaymentOnCancelCallBack), paymentId);
-            throw;
+
+            this.navigationManager.NavigateTo($"/", forceLoad: true);
         }
     }
 
@@ -265,8 +268,8 @@ public sealed class ServicesPiNetworkFacade : PiNetworkClientBlazor
         try
         {
             var orderState = new OrderState();
-            await this.sessionStorage.SetItemAsync(Enumerators.Constants.SessionOrderState, orderState);
-            await this.sessionStorage.SetItemAsync(Enumerators.Constants.SessionBasketCounter, 0);
+            await this.sessionStorage.SetItemAsync(Constants.SessionOrderState, orderState);
+            await this.sessionStorage.SetItemAsync(Constants.SessionBasketCounter, 0);
         }
         catch (Exception e)
         {

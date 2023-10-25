@@ -1,4 +1,6 @@
-﻿namespace PiNetwork.Blazor.Sdk.ConstantsEnums;
+﻿using System;
+
+namespace PiNetwork.Blazor.Sdk.Common;
 
 public enum Messages
 {
@@ -8,11 +10,21 @@ public enum Messages
     PaymentSuccess = 3
 }
 
-public class PiNetworkConstants
+public sealed class PiNetworkConstants
 {
     public const string PiNetworkSdkCallBackError = "PiNetworkSdkCallBackError";
     public const string PiNetworkDoNotRedirect = "PiNetworkDoNotRedirect";
     public const string IsPiNetworkBrowser = "IsPiNetworkBrowser";
     public const string PiNetworkClient = "PiNetworkClient";
     public const string PiNetworkClientFallback = "PiNetworkClientFallback";
+    public const string PiTestnet = "Pi Testnet";
+    public const string PiNetwork = "Pi Network";
+}
+
+public sealed class PiNetworkException : Exception
+{
+    public PiNetworkException(string message) : base(message)
+
+    {
+    }
 }

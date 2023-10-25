@@ -4,7 +4,7 @@ See LICENSE.md file for more details
 ## INSTALATION
 
 Clone project, add to your solution.
-This setup is for server side Blazor, but for WASM blazor (client side) would be good as well.
+This setup is for server side Blazor, but for WASM blazor (client side) would be good as well with some small changes.
 
 Add line to your Blazor project `_Host.cshtml`
 
@@ -13,8 +13,10 @@ Add line to your Blazor project `_Host.cshtml`
 Add lines to your Blazor project `appsettings.json`
 
     "PiNetwork": {
-        "ApiKey": "YourApiKey",
-        "BaseUrl": "https://api.minepi.com/v2"
+        "ApiKey": "YourApiKeyForU2Apayments",
+        "BaseUrl": "https://api.minepi.com/v2",
+		"DeveloperAccount": "YourDeveloperAccountForA2UPayments"
+		"DeveloperSeed": "YouDeveloperSeedForA2Upayments",
     }
 
 
@@ -25,8 +27,9 @@ Modify your Blazor project `Startup.cs` file:
     public void ConfigureServices(IServiceCollection services)
     {
     //...your rest code
-    services.AddScoped<IPiNetworkClientBlazor, ServicesPiNetworkFacade>();
-    services.AddScoped<IPiNetworkServerBlazor, PiNetworkServerBlazor>();
+    services.AddScoped<IPiNetworkClientBlazor, ServicesPiNetworkU2AFacade>();
+    services.AddScoped<IPiNetworkU2AServerBlazor, PiNetworkU2AServerBlazor>(); //for user to app payments
+    services.AddScoped<IPiNetworkA2UServerBlazor, PiNetworkA2UServerBlazor>(); //for app to user payments
     //...your rest code
 
     services.AddPiNetwork(options =>
@@ -83,7 +86,7 @@ Put this new class to you Blazor project. Lets call this new class ServicesPiNet
                                     NavigationManager navigationManager,
                                     IJSRuntime jsRuntime,
                                     ISessionStorageService sessionStorage,
-                                    IPiNetworkServerBlazor server,
+                                    IPiNetworkU2AServerBlazor server,
                                     IOrderServices orderServices)
                 : base(navigationManager, jsRuntime, sessionStorage, loggerFactory)
         {
@@ -145,10 +148,11 @@ See PiNetwork.Blazor.Sdk.ConstantsEnums for messages to pass to front side. Mess
     AuthenticationSuccess = 2,
     PaymentSuccess = 3
 
-## USE CONSTANTS IN PiNetworkConstantsEnums.cs
+## USE CONSTANTS IN PiNetworkCommon.cs
     public const string PiNetworkSdkCallBackError = "PiNetworkSdkCallBackError";
     public const string PiNetworkDoNotRedirect = "PiNetworkDoNotRedirect";
     public const string IsPiNetworkBrowser = "IsPiNetworkBrowser";
+	// rest code
 
 If you don't need to redirect use constant "PiNetworkDoNotRedirect" this is used in AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri).
 See ServicesPiNetworkFacadeExample.md.
@@ -171,8 +175,8 @@ Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
 
 If you don't need to redirect use ConstantsEnums.PiNetworkDoNotRedirect (if you provide just empty string it will redirect to "/").
 
-### MAKE PAYMENTS
-Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
+### MAKE U2A PAYMENTS
+Inject inyour *.razor file '@inject IPiNetworkClientBlazor piClient'
 
 First authenticate with ConstantsEnums.PiNetworkDoNotRedirect option. Authenticate every time before making payment.
 
@@ -184,3 +188,6 @@ Now make payment
     //public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
     
     await this.piClient.CreatePayment(total, memo, OrderId);
+
+
+
