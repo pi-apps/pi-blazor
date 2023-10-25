@@ -75,19 +75,19 @@ Now you will need to create class to deal with PiNetwPiNetwork.Blazor.Sdk callba
 
 Put this new class to you Blazor project. Lets call this new class ServicesPiNetworkFacade
 
-    public class ServicesPiNetworkFacade : PiNetworkClientBlazor
+    public class ServicesPiNetworkU2AFacade : PiNetworkClientBlazor
     {
         private readonly ILogger logger;
         private readonly IPiNetworkServerBlazor server;
         private readonly IOrderServices orderServices;
         
         //If you don't need logging use constructor without ILoggerFactory
-        public ServicesPiNetworkFacade(ILoggerFactory loggerFactory,
-                                    NavigationManager navigationManager,
-                                    IJSRuntime jsRuntime,
-                                    ISessionStorageService sessionStorage,
-                                    IPiNetworkU2AServerBlazor server,
-                                    IOrderServices orderServices)
+        public ServicesPiNetworkU2AFacade(ILoggerFactory loggerFactory,
+                                          NavigationManager navigationManager,
+                                          IJSRuntime jsRuntime,
+                                          ISessionStorageService sessionStorage,
+                                          IPiNetworkU2AServerBlazor server,
+                                          IOrderServices orderServices)
                 : base(navigationManager, jsRuntime, sessionStorage, loggerFactory)
         {
             this.logger = loggerFactory.CreateLogger(this.GetType().Name);
@@ -130,7 +130,7 @@ Put this new class to you Blazor project. Lets call this new class ServicesPiNet
     }
 
 ## SEE REAL WORLD PRODUCTION EXAMPLE AND USE FOR YOUR APP
-See ServicesPiNetworkFacadeExample.md
+See ServicesPiNetworkU2AFacade.md
 
 ## RETRIES
 By default if something fails PiNetworkClientBlazor will try to retry (if it is reasonable to do so and could solve problem) up to 10 times with 1000 milliseconds intervals.
