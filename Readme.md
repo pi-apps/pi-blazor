@@ -17,8 +17,8 @@ Add lines to your Blazor project `appsettings.json`
 "PiNetwork": {
     "ApiKey": "YourApiKeyForU2Apayments",
     "BaseUrl": "https://api.minepi.com/v2",
-	"DeveloperAccount": "YourDeveloperAccountForA2UPayments"
-	"DeveloperSeed": "YouDeveloperSeedForA2Upayments",
+    "DeveloperAccount": "YourDeveloperAccountForA2UPayments"
+    "DeveloperSeed": "YouDeveloperSeedForA2Upayments",
 }
 ```
 
@@ -160,7 +160,7 @@ public const string IsPiNetworkBrowser = "IsPiNetworkBrowser";
 // rest code
 ```
 If you don't need to redirect use constant "PiNetworkDoNotRedirect" this is used in AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri).
-See ServicesPiNetworkFacadeExample.md.
+See ServicesPiNetworkU2AFacade.md.
 
 ## OPEN SHARE DIALOG
 Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
@@ -175,7 +175,7 @@ PiNetworkClientBlazor.IsPiNetworkBrowser() this method is not from PI SDK, but s
 ## HOW TO AUTHENTICATE AND MAKE PAYMENTS FROM YOUR BLAZOR APP?
 
 ### AUTHENTICATE
-Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
+Inject in your '*.razor' file '@inject IPiNetworkClientBlazor piClient'
 ```csharp
 await this.piClient.Authenticate(redirectUri, 0); // 0 - first attempt
 ```
