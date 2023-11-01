@@ -8,22 +8,24 @@ This setup is for server side Blazor, but for WASM blazor (client side) would be
 
 Add line to your Blazor project `_Host.cshtml`
 
-`<script>src="_content/PiNetwork.Blazor.Sdk/PiNetwork.Blazor.Sdk.js"</script>`
-    
+```html
+   <script>src="_content/PiNetwork.Blazor.Sdk/PiNetwork.Blazor.Sdk.js"</script>
+```
 Add lines to your Blazor project `appsettings.json`
 
+```json
     "PiNetwork": {
         "ApiKey": "YourApiKeyForU2Apayments",
         "BaseUrl": "https://api.minepi.com/v2",
 		"DeveloperAccount": "YourDeveloperAccountForA2UPayments"
 		"DeveloperSeed": "YouDeveloperSeedForA2Upayments",
     }
-
+```
 
 Add reference to your Blazor project to this PiNetwork.Blazor.Sdk
 
 Modify your Blazor project `Startup.cs` file:
-
+```csharp
     public void ConfigureServices(IServiceCollection services)
     {
     //...your rest code
@@ -70,11 +72,12 @@ Modify your Blazor project `Startup.cs` file:
     
     //... your rest code
     }
+```
 
 Now you will need to create class to deal with PiNetwPiNetwork.Blazor.Sdk callbacks. This class must be extended from abstract class PiNetworkClientBlazor. You will need to override some methods to your needs. In example bellow your bussiness logic handler is IOrderServices.
 
 Put this new class to you Blazor project. Lets call this new class ServicesPiNetworkFacade
-
+```csharp
     public class ServicesPiNetworkU2AFacade : PiNetworkClientBlazor
     {
         private readonly ILogger logger;
@@ -128,6 +131,7 @@ Put this new class to you Blazor project. Lets call this new class ServicesPiNet
         {
         }
     }
+```
 
 ## SEE REAL WORLD PRODUCTION EXAMPLE AND USE FOR YOUR APP
 See ServicesPiNetworkU2AFacade.md
@@ -135,33 +139,35 @@ See ServicesPiNetworkU2AFacade.md
 ## RETRIES
 By default if something fails PiNetworkClientBlazor will try to retry (if it is reasonable to do so and could solve problem) up to 10 times with 1000 milliseconds intervals.
 You can override these values in ServicesPiNetworkFacade:
-
+```csharp
     public virtual int Retries { get; set; } = 10;
 
     public virtual int RetryDelay { get; set; } = 1000;
-
+```
 ## USE ENUMS FOR MESSAGES IN PiNetworkConstantsEnums.cs
 See PiNetwork.Blazor.Sdk.ConstantsEnums for messages to pass to front side. Messages stored in SessionStorage.
-
+```csharp
     AuthenticationError = 0,
     PaymentError = 1,
     AuthenticationSuccess = 2,
     PaymentSuccess = 3
-
+```
 ## USE CONSTANTS IN PiNetworkCommon.cs
+```csharp
     public const string PiNetworkSdkCallBackError = "PiNetworkSdkCallBackError";
     public const string PiNetworkDoNotRedirect = "PiNetworkDoNotRedirect";
     public const string IsPiNetworkBrowser = "IsPiNetworkBrowser";
 	// rest code
-
+```
 If you don't need to redirect use constant "PiNetworkDoNotRedirect" this is used in AuthenticateOnSuccessCallBack(AuthResultDto auth, string redirectUri).
 See ServicesPiNetworkFacadeExample.md.
 
 ## OPEN SHARE DIALOG
 Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
-    
+```csharp    
     //OpenShareDialog(string title, string message)
     await this.piClient.OpenShareDialog("Share", "https://www.your-pi-network-project.com"))
+```
 
 ## CHECK IF BROWSER IS PI NETWORK BROWSER
 PiNetworkClientBlazor.IsPiNetworkBrowser() this method is not from PI SDK, but still very practical.
@@ -170,24 +176,22 @@ PiNetworkClientBlazor.IsPiNetworkBrowser() this method is not from PI SDK, but s
 
 ### AUTHENTICATE
 Inject in your *.razor file '@inject IPiNetworkClientBlazor piClient'
-
+```csharp
     await this.piClient.Authenticate(redirectUri, 0); // 0 - first attempt
-
+```
 If you don't need to redirect use ConstantsEnums.PiNetworkDoNotRedirect (if you provide just empty string it will redirect to "/").
 
 ### MAKE U2A PAYMENTS
 Inject inyour *.razor file '@inject IPiNetworkClientBlazor piClient'
 
 First authenticate with ConstantsEnums.PiNetworkDoNotRedirect option. Authenticate every time before making payment.
-
+```csharp
     await this.piClient.Authenticate(ConstantsEnums.PiNetworkDoNotRedirect, 0); // 0 - first attempt
-
+```
 Now make payment
-
+```csharp
     //memo - order discription. Don't exceed 25 characters.
     //public virtual async Task CreatePayment(decimal amount, string memo, int orderId, int retries = 0)
     
     await this.piClient.CreatePayment(total, memo, OrderId);
-
-
-
+```

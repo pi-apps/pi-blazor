@@ -1,21 +1,4 @@
-using AVSoft.Logging;
-using Blazored.SessionStorage;
-using Chall.Blazor.Pages.Infrastructure;
-using Chall.Enumerators;
-using Chall.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
-using PiNetwork.Blazor.Sdk;
-using PiNetwork.Blazor.Sdk.Common;
-using PiNetwork.Blazor.Sdk.Dto.Auth;
-using System;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-namespace Chall.Server.Side.Infrastructure;
+```csharp
 
 public sealed class ServicesPiNetworkU2AFacade : PiNetworkClientBlazor
 {
@@ -279,3 +262,4 @@ public sealed class ServicesPiNetworkU2AFacade : PiNetworkClientBlazor
         }
     }
 }
+```
